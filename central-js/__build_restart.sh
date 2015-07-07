@@ -19,6 +19,9 @@
 #pm2 start process.json --name central-js
 #pm2 info central-js
 
-_build.sh
-_stop.sh
-_start.sh
+BASEDIR="$( cd "$( dirname "$0" )" && pwd )"
+cd $BASEDIR
+
+./_build.sh
+./_stop.sh
+./_start.sh
