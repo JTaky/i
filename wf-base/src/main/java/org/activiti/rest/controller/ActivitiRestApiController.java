@@ -504,9 +504,10 @@ public class ActivitiRestApiController extends ExecutionBaseResource {
                     Task.class, e);
         }
 
-        boolean allFileds = "*".equals(saFields.trim());
-        List<String> fieldNames = Arrays.asList(saFields.toLowerCase().split(";"));
-        log.info("List of fields to retrieve: " + fieldNames.toString());
+        TaskDownloadHeaders taskDownloadHeaders = new TaskDownloadHeaders(saFields);
+//        boolean allFileds = "*".equals(saFields.trim());
+//        List<String> fieldNames = Arrays.asList(saFields.toLowerCase().split(";"));
+        log.info("List of fields to retrieve: " + saFields.toString());
         //2. query
         TaskQuery query = taskService.createTaskQuery()
                 .processDefinitionKey(sID_BP)
@@ -553,24 +554,24 @@ public class ActivitiRestApiController extends ExecutionBaseResource {
                 log.trace("Process task - {}", curTask);
                 TaskFormData data = formService.getTaskFormData(curTask.getId());
                 for(FormProperty property : data.getFormProperties()){
-                	log.trace(String.format("Matching property %s:%s:%s with fieldNames", property.getId(), property.getName(), property.getType().getName()));
-                    if(allFileds || fieldNames.contains(property.getId().toLowerCase())){
-                        if(firstStep){ //build headers from properties if all fields are requested
-                            headers.add(property.getId());
-                        }
-                        String column;
-                        if("enum".equalsIgnoreCase(property.getType().getName())){
-                            column = parseEnumProperty(property);
-                        } else {
-                            column = property.getValue();
-                        }
-                        row.add(column);
+//                	log.trace(String.format("Matching property %s:%s:%s with fieldNames", property.getId(), property.getName(), property.getType().getName()));
+//                    if(allFileds || fieldNames.contains(property.getId().toLowerCase())){
+//                        if(firstStep){ //build headers from properties if all fields are requested
+//                            headers.add(property.getId());
+//                        }
+//                        String column;
+//                        if("enum".equalsIgnoreCase(property.getType().getName())){
+//                            column = parseEnumProperty(property);
+//                        } else {
+//                            column = property.getValue();
+//                        }
+                    row.addAll(taskDownloadHeaders.getValues(property));
+                    if(firstStep){
+                        csvWriter.writeNext(taskDownloadHeaders.getHeaders(property));
                     }
+//                    }
                 }
 
-                if(firstStep){
-                    csvWriter.writeNext(headers.toArray(new String[0]));
-                }
                 csvWriter.writeNext(row.toArray(new String[0]));
                 firstStep = false;
             }
